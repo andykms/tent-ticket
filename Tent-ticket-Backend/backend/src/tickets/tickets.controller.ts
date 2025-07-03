@@ -8,6 +8,11 @@ import { Param } from '@nestjs/common';
 export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
+  @Get()
+  findAll(): Promise<Ticket[]> {
+    return this.ticketsService.findAll();
+  }
+  
   @Get("search")
   searchTickets(@Query() FindTicketsDto: FindTicketsDto): Promise<Ticket[]> {
     return this.ticketsService.searchTickets(FindTicketsDto);

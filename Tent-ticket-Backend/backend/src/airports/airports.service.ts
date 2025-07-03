@@ -19,4 +19,10 @@ export class AirportsService {
       where: {city}
     })
   }
+
+  findByCode(code: string): Promise<Airport|null> {
+    return this.airportsRepository.findOne({
+      where: {code}
+    })
+  }
 }

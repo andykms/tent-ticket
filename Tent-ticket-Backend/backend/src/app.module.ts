@@ -17,6 +17,7 @@ import { AirportsModule } from './airports/airports.module';
 import { AirlinesModule } from './airlines/airlines.module';
 import { ServicesModule } from './services/services.module';
 import { TicketsModule } from './tickets/tickets.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
@@ -48,7 +49,8 @@ import { TicketsModule } from './tickets/tickets.module';
     TicketsModule,
     ServicesModule,
     OrdersModule,
-    AuthModule
+    AuthModule,
+    SeedModule
   ],
   controllers: [AppController],
   providers: [AppService]
