@@ -1,0 +1,12 @@
+@use './styles/font.scss';
+
+:root {
+  --font-family: 'Inter', sans-serif;
+  --primary-color: #2196F3;
+  --hover-color: rgba(33, 150, 243, 0.94);
+  --widgets-color: #1E1E1E;
+  --blocks-color: #252525;
+  --placeholder-text-color: rgb(255 255 255 / 1);
+  --main-text-color: #FFF;
+  --primary-text-color: #000;
+}

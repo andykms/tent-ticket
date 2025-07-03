@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyWay - Book Your Flights</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#2196F3',secondary:'#03DAC6'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: 'Inter', sans-serif;
+background-color: #121212;
+color: #E0E0E0;
+}
+.calendar-grid {
+display: grid;
+grid-template-columns: repeat(7, 1fr);
+gap: 4px;
+}
+.calendar-day {
+aspect-ratio: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+border-radius: 8px;
+cursor: pointer;
+transition: all 0.2s;
+}
+.calendar-day:hover {
+background-color: rgba(187, 134, 252, 0.2);
+}
+.calendar-day.active {
+background-color: rgba(187, 134, 252, 0.3);
+border: 1px solid #BB86FC;
+}
+.calendar-day.disabled {
+opacity: 0.3;
+cursor: not-allowed;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.seat-map {
+display: grid;
+grid-template-columns: repeat(6, 1fr);
+gap: 4px;
+}
+.seat {
+aspect-ratio: 1;
+border-radius: 4px;
+cursor: pointer;
+transition: all 0.2s;
+}
+.seat.available {
+background-color: #1E1E1E;
+border: 1px solid #333;
+}
+.seat.selected {
+background-color: #BB86FC;
+border: 1px solid #BB86FC;
+}
+.seat.unavailable {
+background-color: #333;
+cursor: not-allowed;
+opacity: 0.5;
+}
+.seat.aisle {
+visibility: hidden;
+}
+</style>
+</head>
+<body>
+<header class="bg-[#1E1E1E] shadow-md">
+<div class="container mx-auto px-4 py-3 flex items-center justify-between">
+<a href="#" class="text-primary font-['Pacifico'] text-3xl">SkyWay</a>
+<div class="flex items-center space-x-6">
+<div class="flex space-x-3">
+<button class="text-white hover:text-primary transition-colors">Log in</button>
+<span class="text-gray-500">|</span>
+<button class="text-white hover:text-primary transition-colors">Register</button>
+</div>
+<div class="flex items-center space-x-4">
+<div class="w-10 h-10 flex items-center justify-center relative">
+<i class="ri-heart-line text-white text-xl"></i>
+</div>
+<div class="w-10 h-10 flex items-center justify-center relative">
+<i class="ri-history-line text-white text-xl"></i>
+</div>
+<div class="w-10 h-10 flex items-center justify-center relative">
+<i class="ri-shopping-cart-line text-white text-xl"></i>
+<span class="absolute -top-1 -right-1 bg-primary text-black text-xs w-5 h-5 flex items-center justify-center rounded-full">2</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<main>
+<section class="py-12 bg-[#121212]">
+<div class="container mx-auto px-4">
+<div class="bg-[#1E1E1E] rounded-lg p-6 shadow-lg">
+<div class="flex flex-col space-y-6">
+<div class="flex items-center space-x-4">
+<div class="flex-1">
+<label class="block text-sm font-medium mb-1 text-gray-300">From</label>
+<div class="relative">
+<div class="w-8 h-8 absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-400">
+<i class="ri-flight-takeoff-line"></i>
+</div>
+<input type="text" class="w-full bg-[#252525] border border-[#333] rounded text-white pl-10 pr-3 py-2 focus:outline-none focus:border-primary" placeholder="City or airport">
+</div>
+</div>
+<button class="w-10 h-10 bg-[#252525] rounded-full flex items-center justify-center border border-[#333] mt-6">
+<i class="ri-arrow-left-right-line text-gray-300"></i>
+</button>
+<div class="flex-1">
+<label class="block text-sm font-medium mb-1 text-gray-300">To</label>
+<div class="relative">
+<div class="w-8 h-8 absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-400">
+<i class="ri-flight-land-line"></i>
+</div>
+<input type="text" class="w-full bg-[#252525] border border-[#333] rounded text-white pl-10 pr-3 py-2 focus:outline-none focus:border-primary" placeholder="City or airport">
+</div>
+</div>
+</div>
+<div class="flex space-x-4">
+<div class="flex-1">
+<label class="block text-sm font-medium mb-1 text-gray-300">Departure</label>
+<div class="relative">
+<div class="w-8 h-8 absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-400">
+<i class="ri-calendar-line"></i>
+</div>
+<input type="text" id="departure-date" class="w-full bg-[#252525] border border-[#333] rounded text-white pl-10 pr-3 py-2 focus:outline-none focus:border-primary" placeholder="Select date" readonly>
+</div>
+</div>
+<div class="flex-1">
+<label class="block text-sm font-medium mb-1 text-gray-300">Return</label>
+<div class="relative">
+<div class="w-8 h-8 absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-400">
+<i class="ri-calendar-line"></i>
+</div>
+<input type="text" id="return-date" class="w-full bg-[#252525] border border-[#333] rounded text-white pl-10 pr-3 py-2 focus:outline-none focus:border-primary" placeholder="Select date" readonly>
+</div>
+</div>
+<div class="flex-1">
+<label class="block text-sm font-medium mb-1 text-gray-300">Passengers</label>
+<div class="relative">
+<div class="w-8 h-8 absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center text-gray-400">
+<i class="ri-user-line"></i>
+</div>
+<button id="passengers-btn" class="w-full bg-[#252525] border border-[#333] rounded text-white pl-10 pr-3 py-2 text-left focus:outline-none focus:border-primary flex justify-between items-center">
+<span id="passengers-summary">1 Adult</span>
+<i class="ri-arrow-down-s-line"></i>
+</button>
+</div>
+</div>
+</div>
+<button class="bg-primary text-black font-semibold py-3 px-6 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Search Flights</button>
+</div>
+<!-- Calendar Dropdown -->
+<div id="calendar-dropdown" class="hidden absolute mt-2 bg-[#252525] border border-[#333] rounded-lg p-4 shadow-lg z-10 w-[350px]">
+<div class="flex justify-between items-center mb-4">
+<button id="prev-month" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#333]">
+<i class="ri-arrow-left-s-line"></i>
+</button>
+<h3 id="calendar-month" class="text-lg font-medium">July 2025</h3>
+<button id="next-month" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#333]">
+<i class="ri-arrow-right-s-line"></i>
+</button>
+</div>
+<div class="grid grid-cols-7 gap-1 mb-2">
+<div class="text-center text-sm text-gray-400">Su</div>
+<div class="text-center text-sm text-gray-400">Mo</div>
+<div class="text-center text-sm text-gray-400">Tu</div>
+<div class="text-center text-sm text-gray-400">We</div>
+<div class="text-center text-sm text-gray-400">Th</div>
+<div class="text-center text-sm text-gray-400">Fr</div>
+<div class="text-center text-sm text-gray-400">Sa</div>
+</div>
+<div id="calendar-days" class="calendar-grid">
+<!-- Calendar days will be inserted here by JS -->
+</div>
+</div>
+<!-- Passengers Dropdown -->
+<div id="passengers-dropdown" class="hidden absolute mt-2 bg-[#252525] border border-[#333] rounded-lg p-4 shadow-lg z-10 w-[300px]">
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<div>
+<h4 class="font-medium">Adults</h4>
+<p class="text-sm text-gray-400">18+ years</p>
+</div>
+<div class="flex items-center space-x-2">
+<button class="passenger-decrement w-8 h-8 flex items-center justify-center rounded-full bg-[#333] hover:bg-[#444]" data-type="adult">
+<i class="ri-subtract-line"></i>
+</button>
+<span class="passenger-count w-8 text-center" data-type="adult">1</span>
+<button class="passenger-increment w-8 h-8 flex items-center justify-center rounded-full bg-[#333] hover:bg-[#444]" data-type="adult">
+<i class="ri-add-line"></i>
+</button>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div>
+<h4 class="font-medium">Children</h4>
+<p class="text-sm text-gray-400">2-17 years</p>
+</div>
+<div class="flex items-center space-x-2">
+<button class="passenger-decrement w-8 h-8 flex items-center justify-center rounded-full bg-[#333] hover:bg-[#444]" data-type="child">
+<i class="ri-subtract-line"></i>
+</button>
+<span class="passenger-count w-8 text-center" data-type="child">0</span>
+<button class="passenger-increment w-8 h-8 flex items-center justify-center rounded-full bg-[#333] hover:bg-[#444]" data-type="child">
+<i class="ri-add-line"></i>
+</button>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<div>
+<h4 class="font-medium">Infants</h4>
+<p class="text-sm text-gray-400">0-2 years</p>
+</div>
+<div class="flex items-center space-x-2">
+<button class="passenger-decrement w-8 h-8 flex items-center justify-center rounded-full bg-[#333] hover:bg-[#444]" data-type="infant">
+<i class="ri-subtract-line"></i>
+</button>
+<span class="passenger-count w-8 text-center" data-type="infant">0</span>
+<button class="passenger-increment w-8 h-8 flex items-center justify-center rounded-full bg-[#333] hover:bg-[#444]" data-type="infant">
+<i class="ri-add-line"></i>
+</button>
+</div>
+</div>
+<button id="apply-passengers" class="w-full bg-primary text-black font-semibold py-2 px-4 rounded-button hover:bg-opacity-90 transition-colors mt-2 whitespace-nowrap">Apply</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Popular Destinations -->
+<section class="py-10">
+<div class="container mx-auto px-4">
+<h2 class="text-2xl font-bold mb-6">Popular Destinations</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="bg-[#1E1E1E] rounded-lg overflow-hidden shadow-lg">
+<div class="h-40 relative">
+<img src="https://readdy.ai/api/search-image?query=Beautiful%20aerial%20view%20of%20Paris%20with%20Eiffel%20Tower%20at%20sunset%2C%20romantic%20cityscape%20with%20historic%20architecture%20and%20iconic%20landmarks%2C%20perfect%20travel%20destination&width=500&height=320&seq=1&orientation=landscape" alt="Paris" class="w-full h-full object-cover object-top">
+<div class="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-white">
+<h3 class="text-xl font-bold">Paris</h3>
+<p class="text-sm">From $199</p>
+</div>
+</div>
+<div class="p-3">
+<a href="https://readdy.ai/home/6f90d8b2-71c3-44a2-ab2e-167f59ef6e02/2ae81a21-c436-48e2-a0dd-c790fc35185c" data-readdy="true">
+<button class="w-full bg-[#252525] hover:bg-[#333] text-white py-2 rounded-button transition-colors whitespace-nowrap">View Deals</button>
+</a>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg overflow-hidden shadow-lg">
+<div class="h-60 relative">
+<img src="https://readdy.ai/api/search-image?query=Stunning%20view%20of%20New%20York%20City%20skyline%20at%20dusk%2C%20majestic%20skyscrapers%20illuminated%20against%20purple%20sky%2C%20iconic%20Manhattan%20buildings%20reflecting%20in%20water%2C%20urban%20landscape&width=500&height=320&seq=2&orientation=landscape" alt="New York" class="w-full h-full object-cover object-top">
+<div class="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-white">
+<h3 class="text-xl font-bold">New York</h3>
+<p class="text-sm">From $299</p>
+</div>
+</div>
+<div class="p-3">
+<a href="https://readdy.ai/home/6f90d8b2-71c3-44a2-ab2e-167f59ef6e02/2ae81a21-c436-48e2-a0dd-c790fc35185c" data-readdy="true">
+<button class="w-full bg-[#252525] hover:bg-[#333] text-white py-2 rounded-button transition-colors whitespace-nowrap">View Deals</button>
+</a>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg overflow-hidden shadow-lg">
+<div class="h-60 relative">
+<img src="https://readdy.ai/api/search-image?query=Breathtaking%20view%20of%20Tokyo%20skyline%20at%20night%2C%20modern%20Japanese%20metropolis%20with%20neon%20lights%20and%20Tokyo%20Tower%20illuminated%20against%20dark%20sky%2C%20futuristic%20cityscape%20with%20clean%20background&width=500&height=320&seq=3&orientation=landscape" alt="Tokyo" class="w-full h-full object-cover object-top">
+<div class="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-white">
+<h3 class="text-xl font-bold">Tokyo</h3>
+<p class="text-sm">From $499</p>
+</div>
+</div>
+<div class="p-3">
+<a href="https://readdy.ai/home/6f90d8b2-71c3-44a2-ab2e-167f59ef6e02/2ae81a21-c436-48e2-a0dd-c790fc35185c" data-readdy="true">
+<button class="w-full bg-[#252525] hover:bg-[#333] text-white py-2 rounded-button transition-colors whitespace-nowrap">View Deals</button>
+</a>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg overflow-hidden shadow-lg">
+<div class="h-60 relative">
+<img src="https://readdy.ai/api/search-image?query=Beautiful%20panoramic%20view%20of%20Dubai%20skyline%20with%20Burj%20Khalifa%20at%20sunset%2C%20modern%20futuristic%20architecture%20with%20skyscrapers%20against%20golden%20sky%2C%20luxury%20travel%20destination%20with%20clean%20background&width=500&height=320&seq=4&orientation=landscape" alt="Dubai" class="w-full h-full object-cover object-top">
+<div class="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-white">
+<h3 class="text-xl font-bold">Dubai</h3>
+<p class="text-sm">From $399</p>
+</div>
+</div>
+<div class="p-3">
+<a href="https://readdy.ai/home/6f90d8b2-71c3-44a2-ab2e-167f59ef6e02/2ae81a21-c436-48e2-a0dd-c790fc35185c" data-readdy="true">
+<button class="w-full bg-[#252525] hover:bg-[#333] text-white py-2 rounded-button transition-colors whitespace-nowrap">View Deals</button>
+</a>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg overflow-hidden shadow-lg">
+<div class="h-60 relative">
+<img src="https://readdy.ai/api/search-image?query=Stunning%20aerial%20view%20of%20Barcelona%20with%20Sagrada%20Familia%20and%20Mediterranean%20coastline%2C%20beautiful%20Spanish%20architecture%20and%20beach%2C%20sunny%20cityscape%20with%20clean%20background%2C%20perfect%20travel%20destination&width=500&height=320&seq=5&orientation=landscape" alt="Barcelona" class="w-full h-full object-cover object-top">
+<div class="absolute inset-0 bg-gradient-to-t from-[#121212] to-transparent"></div>
+<div class="absolute bottom-3 left-3 text-white">
+<h3 class="text-xl font-bold">Barcelona</h3>
+<p class="text-sm">From $179</p>
+</div>
+</div>
+<div class="p-3">
+<a href="https://readdy.ai/home/6f90d8b2-71c3-44a2-ab2e-167f59ef6e02/2ae81a21-c436-48e2-a0dd-c790fc35185c" data-readdy="true">
+<button class="w-full bg-[#252525] hover:bg-[#333] text-white py-2 rounded-button transition-colors whitespace-nowrap">View Deals</button>
+</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Search Results (Initially Hidden) -->
+<section id="search-results" class="py-10 hidden">
+<div class="container mx-auto px-4">
+<div class="flex flex-col md:flex-row gap-6">
+<!-- Filters -->
+<div class="w-full md:w-64 bg-[#1E1E1E] rounded-lg p-4 h-fit">
+<h3 class="text-lg font-medium mb-4">Filters</h3>
+<div class="space-y-6">
+<div>
+<h4 class="text-sm font-medium mb-2">Baggage</h4>
+<div class="space-y-2">
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="checkbox" class="opacity-0 absolute" id="with-baggage">
+<div class="w-5 h-5 border border-gray-500 rounded flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded hidden"></div>
+</div>
+</div>
+<span>With checked baggage</span>
+</label>
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="checkbox" class="opacity-0 absolute" id="without-baggage">
+<div class="w-5 h-5 border border-gray-500 rounded flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded hidden"></div>
+</div>
+</div>
+<span>Without checked baggage</span>
+</label>
+</div>
+</div>
+<div>
+<h4 class="text-sm font-medium mb-2">Class</h4>
+<div class="space-y-2">
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="radio" name="class" class="opacity-0 absolute" id="economy-class" checked>
+<div class="w-5 h-5 border border-gray-500 rounded-full flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded-full hidden"></div>
+</div>
+</div>
+<span>Economy</span>
+</label>
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="radio" name="class" class="opacity-0 absolute" id="business-class">
+<div class="w-5 h-5 border border-gray-500 rounded-full flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded-full hidden"></div>
+</div>
+</div>
+<span>Business</span>
+</label>
+</div>
+</div>
+<div>
+<h4 class="text-sm font-medium mb-2">Airports</h4>
+<div class="relative">
+<button class="w-full bg-[#252525] border border-[#333] rounded text-white px-3 py-2 text-left focus:outline-none focus:border-primary flex justify-between items-center">
+<span>All airports</span>
+<i class="ri-arrow-down-s-line"></i>
+</button>
+</div>
+</div>
+<div>
+<h4 class="text-sm font-medium mb-2">Airlines</h4>
+<div class="space-y-2">
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="checkbox" class="opacity-0 absolute" id="airline-1" checked>
+<div class="w-5 h-5 border border-gray-500 rounded flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded hidden"></div>
+</div>
+</div>
+<span>British Airways</span>
+</label>
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="checkbox" class="opacity-0 absolute" id="airline-2" checked>
+<div class="w-5 h-5 border border-gray-500 rounded flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded hidden"></div>
+</div>
+</div>
+<span>Lufthansa</span>
+</label>
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="checkbox" class="opacity-0 absolute" id="airline-3" checked>
+<div class="w-5 h-5 border border-gray-500 rounded flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded hidden"></div>
+</div>
+</div>
+<span>Emirates</span>
+</label>
+<label class="flex items-center space-x-2">
+<div class="relative">
+<input type="checkbox" class="opacity-0 absolute" id="airline-4" checked>
+<div class="w-5 h-5 border border-gray-500 rounded flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded hidden"></div>
+</div>
+</div>
+<span>Delta Airlines</span>
+</label>
+</div>
+</div>
+<button class="w-full bg-[#252525] hover:bg-[#333] text-white py-2 rounded-button transition-colors whitespace-nowrap">Reset Filters</button>
+</div>
+</div>
+<!-- Results -->
+<div class="flex-1 space-y-4">
+<div class="bg-[#1E1E1E] rounded-lg p-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+<i class="ri-british-airways-fill text-[#1E1E1E] text-2xl"></i>
+</div>
+<div>
+<h3 class="font-medium">British Airways</h3>
+<div class="flex items-center text-sm text-gray-400">
+<span>Boeing 777-300ER</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-2xl font-bold text-primary">$349</div>
+<div class="text-sm text-gray-400">per person</div>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex-1">
+<div class="flex items-end justify-between">
+<div>
+<div class="text-2xl font-bold">07:45</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul</div>
+<div class="mt-1">
+<div class="font-medium">London Heathrow</div>
+<div class="text-sm text-gray-400">LHR</div>
+</div>
+</div>
+<div class="flex flex-col items-center mx-4 pb-6">
+<div class="text-sm text-gray-400">8h 15m</div>
+<div class="w-24 md:w-32 lg:w-40 h-[1px] bg-gray-600 relative my-2">
+<div class="absolute -top-1.5 right-0 w-3 h-3 border-t-2 border-r-2 border-gray-600 transform rotate-45"></div>
+</div>
+<div class="text-xs text-gray-500">Direct</div>
+</div>
+<div>
+<div class="text-2xl font-bold">16:00</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul</div>
+<div class="mt-1">
+<div class="font-medium">New York JFK</div>
+<div class="text-sm text-gray-400">JFK</div>
+</div>
+</div>
+</div>
+</div>
+<div class="ml-6 flex flex-col items-end">
+<div class="flex space-x-2 mb-2">
+<div class="flex items-center space-x-1 bg-[#252525] px-2 py-1 rounded text-xs">
+<i class="ri-suitcase-line text-gray-400"></i>
+<span>23kg</span>
+</div>
+<div class="flex items-center space-x-1 bg-[#252525] px-2 py-1 rounded text-xs">
+<i class="ri-briefcase-line text-gray-400"></i>
+<span>8kg</span>
+</div>
+</div>
+<button class="bg-primary text-black font-semibold py-2 px-6 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Select</button>
+</div>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg p-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+<i class="ri-emirates-fill text-[#1E1E1E] text-2xl"></i>
+</div>
+<div>
+<h3 class="font-medium">Emirates</h3>
+<div class="flex items-center text-sm text-gray-400">
+<span>Airbus A380-800</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-2xl font-bold text-primary">$429</div>
+<div class="text-sm text-gray-400">per person</div>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex-1">
+<div class="flex items-end justify-between">
+<div>
+<div class="text-2xl font-bold">09:15</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul</div>
+<div class="mt-1">
+<div class="font-medium">London Heathrow</div>
+<div class="text-sm text-gray-400">LHR</div>
+</div>
+</div>
+<div class="flex flex-col items-center mx-4 pb-6">
+<div class="text-sm text-gray-400">13h 45m</div>
+<div class="w-24 md:w-32 lg:w-40 h-[1px] bg-gray-600 relative my-2">
+<div class="absolute -top-1.5 -left-1 w-3 h-3 rounded-full bg-gray-600"></div>
+<div class="absolute -top-1.5 right-0 w-3 h-3 border-t-2 border-r-2 border-gray-600 transform rotate-45"></div>
+</div>
+<div class="text-xs text-gray-500">1 stop (DXB)</div>
+</div>
+<div>
+<div class="text-2xl font-bold">23:00</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul</div>
+<div class="mt-1">
+<div class="font-medium">New York JFK</div>
+<div class="text-sm text-gray-400">JFK</div>
+</div>
+</div>
+</div>
+</div>
+<div class="ml-6 flex flex-col items-end">
+<div class="flex space-x-2 mb-2">
+<div class="flex items-center space-x-1 bg-[#252525] px-2 py-1 rounded text-xs">
+<i class="ri-suitcase-line text-gray-400"></i>
+<span>30kg</span>
+</div>
+<div class="flex items-center space-x-1 bg-[#252525] px-2 py-1 rounded text-xs">
+<i class="ri-briefcase-line text-gray-400"></i>
+<span>10kg</span>
+</div>
+</div>
+<button class="bg-primary text-black font-semibold py-2 px-6 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Select</button>
+</div>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg p-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+<i class="ri-delta-fill text-[#1E1E1E] text-2xl"></i>
+</div>
+<div>
+<h3 class="font-medium">Delta Airlines</h3>
+<div class="flex items-center text-sm text-gray-400">
+<span>Boeing 787-9</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-2xl font-bold text-primary">$379</div>
+<div class="text-sm text-gray-400">per person</div>
+</div>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex-1">
+<div class="flex items-end justify-between">
+<div>
+<div class="text-2xl font-bold">11:30</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul</div>
+<div class="mt-1">
+<div class="font-medium">London Heathrow</div>
+<div class="text-sm text-gray-400">LHR</div>
+</div>
+</div>
+<div class="flex flex-col items-center mx-4 pb-6">
+<div class="text-sm text-gray-400">8h 45m</div>
+<div class="w-24 md:w-32 lg:w-40 h-[1px] bg-gray-600 relative my-2">
+<div class="absolute -top-1.5 right-0 w-3 h-3 border-t-2 border-r-2 border-gray-600 transform rotate-45"></div>
+</div>
+<div class="text-xs text-gray-500">Direct</div>
+</div>
+<div>
+<div class="text-2xl font-bold">20:15</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul</div>
+<div class="mt-1">
+<div class="font-medium">New York JFK</div>
+<div class="text-sm text-gray-400">JFK</div>
+</div>
+</div>
+</div>
+</div>
+<div class="ml-6 flex flex-col items-end">
+<div class="flex space-x-2 mb-2">
+<div class="flex items-center space-x-1 bg-[#252525] px-2 py-1 rounded text-xs">
+<i class="ri-suitcase-line text-gray-400"></i>
+<span>23kg</span>
+</div>
+<div class="flex items-center space-x-1 bg-[#252525] px-2 py-1 rounded text-xs">
+<i class="ri-briefcase-line text-gray-400"></i>
+<span>7kg</span>
+</div>
+</div>
+<button class="bg-primary text-black font-semibold py-2 px-6 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Select</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Ticket Detail (Initially Hidden) -->
+<section id="ticket-detail" class="py-10 hidden">
+<div class="container mx-auto px-4">
+<div class="bg-[#1E1E1E] rounded-lg p-6 shadow-lg">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="text-2xl font-bold">London (LHR) to New York (JFK)</h2>
+<p class="text-gray-400">Wednesday, July 2, 2025</p>
+</div>
+<div class="text-right">
+<div class="text-3xl font-bold text-primary">$349</div>
+<div class="text-sm text-gray-400">per person</div>
+</div>
+</div>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center space-x-4">
+<div class="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+<i class="ri-british-airways-fill text-[#1E1E1E] text-3xl"></i>
+</div>
+<div>
+<h3 class="text-xl font-medium">British Airways</h3>
+<div class="flex items-center text-sm text-gray-400 space-x-2">
+<span>Flight BA117</span>
+<span>•</span>
+<span>Boeing 777-300ER</span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-start justify-between mb-8">
+<div class="flex-1">
+<div class="flex items-start justify-between">
+<div>
+<div class="text-3xl font-bold">07:45</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul 2025</div>
+<div class="mt-2">
+<div class="font-medium text-lg">London Heathrow Airport</div>
+<div class="text-sm text-gray-400">LHR • Terminal 5</div>
+</div>
+</div>
+<div class="flex flex-col items-center mx-6 pt-2">
+<div class="text-sm text-gray-400">8h 15m</div>
+<div class="w-32 md:w-48 lg:w-64 h-[1px] bg-gray-600 relative my-3">
+<div class="absolute -top-1.5 right-0 w-3 h-3 border-t-2 border-r-2 border-gray-600 transform rotate-45"></div>
+</div>
+<div class="flex items-center space-x-1 text-xs text-gray-500">
+<i class="ri-flight-takeoff-line"></i>
+<span>Direct Flight</span>
+</div>
+</div>
+<div>
+<div class="text-3xl font-bold">16:00</div>
+<div class="text-sm text-gray-400">Wed, 2 Jul 2025</div>
+<div class="mt-2">
+<div class="font-medium text-lg">John F. Kennedy International Airport</div>
+<div class="text-sm text-gray-400">JFK • Terminal 7</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-[#252525] p-4 rounded-lg">
+<h4 class="font-medium mb-2">Fare</h4>
+<p class="text-sm text-gray-300">Economy Standard</p>
+<div class="mt-2 text-sm text-gray-400">
+<p>Refundable with fee</p>
+<p>Changes allowed with fee</p>
+</div>
+</div>
+<div class="bg-[#252525] p-4 rounded-lg">
+<h4 class="font-medium mb-2">Cabin Baggage</h4>
+<div class="flex items-center space-x-2">
+<i class="ri-briefcase-line text-gray-300"></i>
+<p class="text-sm text-gray-300">1 × 8kg (56 × 45 × 25 cm)</p>
+</div>
+<div class="mt-2 text-sm text-gray-400">
+<p>1 personal item included</p>
+<p>Max 40 × 30 × 15 cm</p>
+</div>
+</div>
+<div class="bg-[#252525] p-4 rounded-lg">
+<h4 class="font-medium mb-2">Checked Baggage</h4>
+<div class="flex items-center space-x-2">
+<i class="ri-suitcase-line text-gray-300"></i>
+<p class="text-sm text-gray-300">1 × 23kg</p>
+</div>
+<div class="mt-2 text-sm text-gray-400">
+<p>Max 158 cm (L+W+H)</p>
+<p>Additional baggage can be purchased</p>
+</div>
+</div>
+</div>
+<button class="w-full bg-primary text-black font-semibold py-3 px-6 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Continue to Booking</button>
+</div>
+</div>
+</section>
+<!-- Booking Form (Initially Hidden) -->
+<section id="booking-form" class="py-10 hidden">
+<div class="container mx-auto px-4">
+<div class="flex flex-col lg:flex-row gap-6">
+<!-- Main Form -->
+<div class="flex-1">
+<div class="bg-[#1E1E1E] rounded-lg p-6 shadow-lg mb-6">
+<h2 class="text-xl font-bold mb-4">Passenger Information</h2>
+<div class="space-y-4">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div>
+<label class="block text-sm font-medium mb-1 text-gray-300">First Name</label>
+<input type="text" class="w-full bg-[#252525] border border-[#333] rounded text-white px-3 py-2 focus:outline-none focus:border-primary">
+</div>
+<div>
+<label class="block text-sm font-medium mb-1 text-gray-300">Last Name</label>
+<input type="text" class="w-full bg-[#252525] border border-[#333] rounded text-white px-3 py-2 focus:outline-none focus:border-primary">
+</div>
+<div>
+<label class="block text-sm font-medium mb-1 text-gray-300">Middle Name</label>
+<input type="text" class="w-full bg-[#252525] border border-[#333] rounded text-white px-3 py-2 focus:outline-none focus:border-primary">
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium mb-1 text-gray-300">Phone Number</label>
+<input type="tel" class="w-full bg-[#252525] border border-[#333] rounded text-white px-3 py-2 focus:outline-none focus:border-primary">
+</div>
+<div>
+<label class="block text-sm font-medium mb-1 text-gray-300">Email</label>
+<input type="email" class="w-full bg-[#252525] border border-[#333] rounded text-white px-3 py-2 focus:outline-none focus:border-primary">
+</div>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg p-6 shadow-lg mb-6">
+<h2 class="text-xl font-bold mb-4">Select Fare</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="border border-[#333] rounded-lg p-4 cursor-pointer hover:border-primary transition-colors">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-medium">Economy Light</h3>
+<div class="text-lg font-bold">$349</div>
+</div>
+<ul class="text-sm text-gray-400 space-y-2">
+<li class="flex items-center space-x-2">
+<i class="ri-briefcase-line text-gray-300"></i>
+<span>Cabin bag (8kg)</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-close-line text-gray-300"></i>
+<span>No checked baggage</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-close-line text-gray-300"></i>
+<span>No seat selection</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-close-line text-gray-300"></i>
+<span>No changes</span>
+</li>
+</ul>
+</div>
+<div class="border border-primary rounded-lg p-4 cursor-pointer bg-[#252525]">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-medium">Economy Standard</h3>
+<div class="text-lg font-bold">$399</div>
+</div>
+<ul class="text-sm text-gray-400 space-y-2">
+<li class="flex items-center space-x-2">
+<i class="ri-briefcase-line text-gray-300"></i>
+<span>Cabin bag (8kg)</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-suitcase-line text-gray-300"></i>
+<span>1 checked bag (23kg)</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-checkbox-circle-line text-gray-300"></i>
+<span>Standard seat selection</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-exchange-line text-gray-300"></i>
+<span>Changes for fee</span>
+</li>
+</ul>
+</div>
+<div class="border border-[#333] rounded-lg p-4 cursor-pointer hover:border-primary transition-colors">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-medium">Economy Flex</h3>
+<div class="text-lg font-bold">$499</div>
+</div>
+<ul class="text-sm text-gray-400 space-y-2">
+<li class="flex items-center space-x-2">
+<i class="ri-briefcase-line text-gray-300"></i>
+<span>Cabin bag (8kg)</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-suitcase-line text-gray-300"></i>
+<span>2 checked bags (23kg each)</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-checkbox-circle-line text-gray-300"></i>
+<span>Priority seat selection</span>
+</li>
+<li class="flex items-center space-x-2">
+<i class="ri-exchange-line text-gray-300"></i>
+<span>Free changes</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="bg-[#1E1E1E] rounded-lg p-6 shadow-lg mb-6">
+<h2 class="text-xl font-bold mb-4">Additional Services</h2>
+<div class="space-y-6">
+<div>
+<h3 class="font-medium mb-3">Seat Selection</h3>
+<button id="select-seat-btn" class="bg-[#252525] hover:bg-[#333] text-white py-2 px-4 rounded-button transition-colors whitespace-nowrap">Select Your Seat</button>
+<div id="seat-selection" class="hidden mt-4">
+<div class="bg-[#252525] p-4 rounded-lg mb-4">
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-medium">Airplane Seat Map</h4>
+<div class="flex space-x-4">
+<div class="flex items-center space-x-2">
+<div class="w-4 h-4 bg-[#1E1E1E] border border-[#333]"></div>
+<span class="text-xs">Available</span>
+</div>
+<div class="flex items-center space-x-2">
+<div class="w-4 h-4 bg-primary"></div>
+<span class="text-xs">Selected</span>
+</div>
+<div class="flex items-center space-x-2">
+<div class="w-4 h-4 bg-[#333] opacity-50"></div>
+<span class="text-xs">Unavailable</span>
+</div>
+</div>
+</div>
+<div class="flex justify-center mb-4">
+<div class="w-full max-w-md">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs">Front</span>
+<span class="text-xs">Rear</span>
+</div>
+<div class="seat-map">
+<!-- Seats will be generated by JS -->
+</div>
+</div>
+</div>
+<div class="text-center">
+<button id="confirm-seat" class="bg-primary text-black font-semibold py-2 px-6 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Confirm Selection</button>
+</div>
+</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium mb-3">Meal Preferences</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="border border-[#333] rounded-lg p-4 cursor-pointer hover:border-primary transition-colors">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-medium">Standard Meal</h4>
+<div class="text-sm font-bold">Included</div>
+</div>
+<p class="text-sm text-gray-400">Regular inflight meal based on flight time</p>
+</div>
+<div class="border border-[#333] rounded-lg p-4 cursor-pointer hover:border-primary transition-colors">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-medium">Vegetarian</h4>
+<div class="text-sm font-bold">+$15</div>
+</div>
+<p class="text-sm text-gray-400">Vegetarian meal option</p>
+</div>
+<div class="border border-[#333] rounded-lg p-4 cursor-pointer hover:border-primary transition-colors">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-medium">Premium Meal</h4>
+<div class="text-sm font-bold">+$25</div>
+</div>
+<p class="text-sm text-gray-400">Enhanced meal with premium options</p>
+</div>
+</div>
+</div>
+<div>
+<h3 class="font-medium mb-3">Pet Transportation</h3>
+<div class="flex items-center space-x-2 mb-2">
+<div class="relative">
+<input type="checkbox" id="pet-transport" class="opacity-0 absolute">
+<div class="w-5 h-5 border border-gray-500 rounded flex items-center justify-center bg-[#252525]">
+<div class="w-3 h-3 bg-primary rounded hidden"></div>
+</div>
+</div>
+<span>I need to transport a pet</span>
+</div>
+<p class="text-sm text-gray-400">Additional fee of $150 applies. Please check pet transportation policy.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Summary -->
+<div class="w-full lg:w-80">
+<div class="bg-[#1E1E1E] rounded-lg p-6 shadow-lg sticky top-4">
+<h2 class="text-xl font-bold mb-4">Booking Summary</h2>
+<div class="space-y-4">
+<div class="flex justify-between">
+<span class="text-gray-300">London (LHR) to New York (JFK)</span>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex items-center space-x-2">
+<div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+<i class="ri-british-airways-fill text-[#1E1E1E] text-sm"></i>
+</div>
+<span>British Airways</span>
+</div>
+<span class="text-sm text-gray-400">BA117</span>
+</div>
+<div class="flex justify-between text-sm">
+<span>Wed, 2 Jul 2025</span>
+<span>07:45 - 16:00</span>
+</div>
+<div class="border-t border-[#333] my-4"></div>
+<div class="space-y-2">
+<div class="flex justify-between">
+<span>Base fare</span>
+<span>$349.00</span>
+</div>
+<div class="flex justify-between">
+<span>Fare difference</span>
+<span>+$50.00</span>
+</div>
+<div class="flex justify-between">
+<span>Taxes & fees</span>
+<span>$85.20</span>
+</div>
+<div class="flex justify-between">
+<span>Seat selection</span>
+<span>$25.00</span>
+</div>
+<div class="flex justify-between">
+<span>Meal upgrade</span>
+<span>$15.00</span>
+</div>
+</div>
+<div class="border-t border-[#333] my-4"></div>
+<div class="flex justify-between font-bold text-lg">
+<span>Total</span>
+<span class="text-primary">$524.20</span>
+</div>
+<button class="w-full bg-primary text-black font-semibold py-3 px-6 rounded-button hover:bg-opacity-90 transition-colors whitespace-nowrap">Proceed to Payment</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="bg-[#1E1E1E] py-10 mt-10">
+<div class="container mx-auto px-4">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+<div>
+<a href="#" class="text-primary font-['Pacifico'] text-2xl">SkyWay</a>
+<p class="mt-2 text-gray-400">Book your flights with confidence. Transparent pricing, no hidden fees.</p>
+<div class="flex space-x-4 mt-4">
+<a href="#" class="text-gray-400 hover:text-white">
+<i class="ri-facebook-fill"></i>
+</a>
+<a href="#" class="text-gray-400 hover:text-white">
+<i class="ri-twitter-fill"></i>
+</a>
+<a href="#" class="text-gray-400 hover:text-white">
+<i class="ri-instagram-fill"></i>
+</a>
+</div>
+</div>
+<div>
+<h3 class="text-lg font-medium mb-4">Company</h3>
+<ul class="space-y-2">
+<li><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white">Careers</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white">Press</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white">Partners</a></li>
+</ul>
+</div>
+<div>
+<h3 class="text-lg font-medium mb-4">Support</h3>
+<ul class="space-y-2">
+<li><a href="#" class="text-gray-400 hover:text-white">Help Center</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+<li><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+</ul>
+</div>
+<div>
+<h3 class="text-lg font-medium mb-4">Newsletter</h3>
+<p class="text-gray-400 mb-2">Subscribe for special offers and updates</p>
+<div class="flex">
+<input type="email" placeholder="Your email" class="bg-[#252525] border border-[#333] rounded-l text-white px-3 py-2 w-full focus:outline-none focus:border-primary">
+<button class="bg-primary text-black font-semibold py-2 px-4 rounded-r hover:bg-opacity-90 transition-colors whitespace-nowrap">Subscribe</button>
+</div>
+<div class="flex space-x-2 mt-4">
+<i class="ri-visa-fill text-gray-400 text-2xl"></i>
+<i class="ri-mastercard-fill text-gray-400 text-2xl"></i>
+<i class="ri-paypal-fill text-gray-400 text-2xl"></i>
+<i class="ri-american-express-fill text-gray-400 text-2xl"></i>
+</div>
+</div>
+</div>
+<div class="border-t border-[#333] mt-8 pt-8 text-center text-gray-500">
+<p>&copy; 2025 SkyWay. All rights reserved.</p>
+</div>
+</div>
+</footer>
+<script id="calendar-script">
+document.addEventListener('DOMContentLoaded', function() {
+const departureDate = document.getElementById('departure-date');
+const returnDate = document.getElementById('return-date');
+const calendarDropdown = document.getElementById('calendar-dropdown');
+const calendarMonth = document.getElementById('calendar-month');
+const calendarDays = document.getElementById('calendar-days');
+const prevMonthBtn = document.getElementById('prev-month');
+const nextMonthBtn = document.getElementById('next-month');
+let currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
+let selectedField = null;
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function generateCalendar(month, year) {
+calendarMonth.textContent = `${months[month]} ${year}`;
+calendarDays.innerHTML = '';
+const firstDay = new Date(year, month, 1).getDay();
+const daysInMonth = new Date(year, month + 1, 0).getDate();
+// Empty cells for days before the first day of the month
+for (let i = 0; i < firstDay; i++) {
+const emptyDay = document.createElement('div');
+calendarDays.appendChild(emptyDay);
+}
+// Days of the month
+for (let day = 1; day <= daysInMonth; day++) {
+const dayElement = document.createElement('div');
+dayElement.classList.add('calendar-day');
+const dateObj = new Date(year, month, day);
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+if (dateObj < today) {
+dayElement.classList.add('disabled');
+} else {
+dayElement.addEventListener('click', () => selectDate(day, month, year));
+}
+const dayNumber = document.createElement('div');
+dayNumber.textContent = day;
+const price = document.createElement('div');
+price.classList.add('text-xs', 'text-primary', 'mt-1');
+// Generate random prices for demonstration
+if (!dayElement.classList.contains('disabled')) {
+const randomPrice = Math.floor(Math.random() * 200) + 300;
+price.textContent = `$${randomPrice}`;
+}
+dayElement.appendChild(dayNumber);
+dayElement.appendChild(price);
+calendarDays.appendChild(dayElement);
+}
+}
+function selectDate(day, month, year) {
+const formattedDate = `${months[month].substring(0, 3)} ${day}, ${year}`;
+if (selectedField === departureDate) {
+departureDate.value = formattedDate;
+} else if (selectedField === returnDate) {
+returnDate.value = formattedDate;
+}
+calendarDropdown.classList.add('hidden');
+}
+departureDate.addEventListener('click', function(e) {
+e.stopPropagation();
+selectedField = departureDate;
+const rect = departureDate.getBoundingClientRect();
+calendarDropdown.style.top = `${rect.bottom + window.scrollY}px`;
+calendarDropdown.style.left = `${rect.left + window.scrollX}px`;
+generateCalendar(currentMonth, currentYear);
+calendarDropdown.classList.remove('hidden');
+});
+returnDate.addEventListener('click', function(e) {
+e.stopPropagation();
+selectedField = returnDate;
+const rect = returnDate.getBoundingClientRect();
+calendarDropdown.style.top = `${rect.bottom + window.scrollY}px`;
+calendarDropdown.style.left = `${rect.left + window.scrollX}px`;
+generateCalendar(currentMonth, currentYear);
+calendarDropdown.classList.remove('hidden');
+});
+prevMonthBtn.addEventListener('click', function() {
+currentMonth--;
+if (currentMonth < 0) {
+currentMonth = 11;
+currentYear--;
+}
+generateCalendar(currentMonth, currentYear);
+});
+nextMonthBtn.addEventListener('click', function() {
+currentMonth++;
+if (currentMonth > 11) {
+currentMonth = 0;
+currentYear++;
+}
+generateCalendar(currentMonth, currentYear);
+});
+document.addEventListener('click', function(e) {
+if (!calendarDropdown.contains(e.target) && e.target !== departureDate && e.target !== returnDate) {
+calendarDropdown.classList.add('hidden');
+}
+});
+});
+</script>
+<script id="passengers-script">
+document.addEventListener('DOMContentLoaded', function() {
+const passengersBtn = document.getElementById('passengers-btn');
+const passengersDropdown = document.getElementById('passengers-dropdown');
+const applyPassengersBtn = document.getElementById('apply-passengers');
+const passengersSummary = document.getElementById('passengers-summary');
+const incrementBtns = document.querySelectorAll('.passenger-increment');
+const decrementBtns = document.querySelectorAll('.passenger-decrement');
+const passengerCounts = document.querySelectorAll('.passenger-count');
+let passengers = {
+adult: 1,
+child: 0,
+infant: 0
+};
+function updatePassengerSummary() {
+let summary = '';
+if (passengers.adult > 0) {
+summary += `${passengers.adult} Adult${passengers.adult > 1 ? 's' : ''}`;
+}
+if (passengers.child > 0) {
+summary += `, ${passengers.child} Child${passengers.child > 1 ? 'ren' : ''}`;
+}
+if (passengers.infant > 0) {
+summary += `, ${passengers.infant} Infant${passengers.infant > 1 ? 's' : ''}`;
+}
+passengersSummary.textContent = summary;
+}
+passengersBtn.addEventListener('click', function(e) {
+e.stopPropagation();
+const rect = passengersBtn.getBoundingClientRect();
+passengersDropdown.style.top = `${rect.bottom + window.scrollY}px`;
+passengersDropdown.style.left = `${rect.left + window.scrollX}px`;
+passengersDropdown.classList.toggle('hidden');
+});
+incrementBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const type = this.dataset.type;
+if (type === 'adult' && passengers.adult < 9) {
+passengers.adult++;
+} else if (type === 'child' && passengers.child < 9) {
+passengers.child++;
+} else if (type === 'infant' && passengers.infant < passengers.adult) {
+passengers.infant++;
+}
+document.querySelector(`.passenger-count[data-type="${type}"]`).textContent = passengers[type];
+// Disable decrement buttons if count is 0
+document.querySelector(`.passenger-decrement[data-type="${type}"]`).disabled = passengers[type] <= 0;
+// Disable infant increment if equal to adults
+if (type === 'infant' || type === 'adult') {
+document.querySelector(`.passenger-increment[data-type="infant"]`).disabled = passengers.infant >= passengers.adult;
+}
+});
+});
+decrementBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const type = this.dataset.type;
+if (type === 'adult' && passengers.adult > 1) {
+passengers.adult--;
+if (passengers.infant > passengers.adult) {
+passengers.infant = passengers.adult;
+document.querySelector(`.passenger-count[data-type="infant"]`).textContent = passengers.infant;
+}
+} else if (type === 'child' && passengers.child > 0) {
+passengers.child--;
+} else if (type === 'infant' && passengers.infant > 0) {
+passengers.infant--;
+}
+document.querySelector(`.passenger-count[data-type="${type}"]`).textContent = passengers[type];
+// Disable decrement buttons if count is 0 or 1 for adults
+document.querySelector(`.passenger-decrement[data-type="${type}"]`).disabled =
+(type === 'adult' && passengers[type] <= 1) ||
+(type !== 'adult' && passengers[type] <= 0);
+// Enable infant increment if less than adults
+if (type === 'infant' || type === 'adult') {
+document.querySelector(`.passenger-increment[data-type="infant"]`).disabled = passengers.infant >= passengers.adult;
+}
+});
+});
+applyPassengersBtn.addEventListener('click', function() {
+updatePassengerSummary();
+passengersDropdown.classList.add('hidden');
+});
+document.addEventListener('click', function(e) {
+if (!passengersDropdown.contains(e.target) && e.target !== passengersBtn) {
+passengersDropdown.classList.add('hidden');
+}
+});
+// Initialize
+updatePassengerSummary();
+// Set initial disabled state for decrement buttons
+decrementBtns.forEach(btn => {
+const type = btn.dataset.type;
+btn.disabled = (type === 'adult' && passengers[type] <= 1) ||
+(type !== 'adult' && passengers[type] <= 0);
+});
+});
+</script>
+<script id="checkbox-radio-script">
+document.addEventListener('DOMContentLoaded', function() {
+// Custom Checkbox Functionality
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+checkboxes.forEach(checkbox => {
+checkbox.addEventListener('change', function() {
+const indicator = this.nextElementSibling.querySelector('div');
+if (this.checked) {
+indicator.classList.remove('hidden');
+} else {
+indicator.classList.add('hidden');
+}
+});
+});
+// Custom Radio Button Functionality
+const radioButtons = document.querySelectorAll('input[type="radio"]');
+radioButtons.forEach(radio => {
+radio.addEventListener('change', function() {
+// Hide all indicators in the same group
+const name = this.getAttribute('name');
+document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+const indicator = r.nextElementSibling.querySelector('div');
+indicator.classList.add('hidden');
+});
+// Show the selected indicator
+const indicator = this.nextElementSibling.querySelector('div');
+indicator.classList.remove('hidden');
+});
+// Initialize checked state
+if (radio.checked) {
+const indicator = radio.nextElementSibling.querySelector('div');
+indicator.classList.remove('hidden');
+}
+});
+});
+</script>
+<script id="seat-selection-script">
+document.addEventListener('DOMContentLoaded', function() {
+const selectSeatBtn = document.getElementById('select-seat-btn');
+const seatSelection = document.getElementById('seat-selection');
+const seatMap = document.querySelector('.seat-map');
+const confirmSeatBtn = document.getElementById('confirm-seat');
+let selectedSeat = null;
+selectSeatBtn.addEventListener('click', function() {
+seatSelection.classList.toggle('hidden');
+if (!seatSelection.classList.contains('hidden') && seatMap.children.length === 0) {
+generateSeatMap();
+}
+});
+function generateSeatMap() {
+// Clear existing seats
+seatMap.innerHTML = '';
+// Generate 6 rows of 6 seats (with aisle in the middle)
+for (let row = 1; row <= 6; row++) {
+for (let col = 1; col <= 6; col++) {
+const seat = document.createElement('div');
+seat.classList.add('seat');
+// Add aisle between seats 3 and 4
+if (col === 3) {
+seat.classList.add('aisle');
+} else {
+// Determine seat letter (A-F, skipping D for aisle)
+let seatLetter;
+if (col < 3) {
+seatLetter = String.fromCharCode(64 + col); // A, B, C
+} else {
+seatLetter = String.fromCharCode(64 + col + 1); // E, F, G (skipping D)
+}
+const seatId = `${row}${seatLetter}`;
+seat.dataset.seatId = seatId;
+// Randomly make some seats unavailable
+const isAvailable = Math.random() > 0.3;
+if (isAvailable) {
+seat.classList.add('available');
+seat.addEventListener('click', () => selectSeat(seat));
+} else {
+seat.classList.add('unavailable');
+}
+// Add seat label
+const seatLabel = document.createElement('span');
+seatLabel.textContent = seatId;
+seatLabel.classList.add('text-xs');
+seat.appendChild(seatLabel);
+}
+seatMap.appendChild(seat);
+}
+}
+}
+function selectSeat(seat) {
+// Deselect previously selected seat
+if (selectedSeat) {
+selectedSeat.classList.remove('selected');
+selectedSeat.classList.add('available');
+}
+// Select new seat
+seat.classList.remove('available');
+seat.classList.add('selected');
+selectedSeat = seat;
+}
+confirmSeatBtn.addEventListener('click', function() {
+if (selectedSeat) {
+const seatId = selectedSeat.dataset.seatId;
+selectSeatBtn.textContent = `Seat ${seatId} Selected`;
+seatSelection.classList.add('hidden');
+} else {
+alert('Please select a seat first.');
+}
+});
+});
+</script>
+<script id="navigation-script">
+document.addEventListener('DOMContentLoaded', function() {
+// This script would handle navigation between different sections
+// For demonstration purposes, we'll add some buttons to show different sections
+const searchResultsBtn = document.querySelector('.bg-primary');
+const searchResults = document.getElementById('search-results');
+const ticketDetail = document.getElementById('ticket-detail');
+const bookingForm = document.getElementById('booking-form');
+// Show search results when search button is clicked
+searchResultsBtn.addEventListener('click', function() {
+document.querySelectorAll('section').forEach(section => {
+section.classList.add('hidden');
+});
+searchResults.classList.remove('hidden');
+});
+// Show ticket detail when a ticket is selected
+document.querySelectorAll('#search-results button').forEach(button => {
+button.addEventListener('click', function() {
+document.querySelectorAll('section').forEach(section => {
+section.classList.add('hidden');
+});
+ticketDetail.classList.remove('hidden');
+});
+});
+// Show booking form when continue to booking is clicked
+document.querySelector('#ticket-detail button').addEventListener('click', function() {
+document.querySelectorAll('section').forEach(section => {
+section.classList.add('hidden');
+});
+bookingForm.classList.remove('hidden');
+});
+});
+</script>
+</body>
+</html>
